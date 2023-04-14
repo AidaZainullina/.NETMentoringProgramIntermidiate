@@ -7,24 +7,70 @@
    Demonstrate the work of the each case with console utility.
 */
 using System;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace MultiThreading.Task6.Continuation
 {
     class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Create a Task and attach continuations to it according to the following criteria:");
-            Console.WriteLine("a.    Continuation task should be executed regardless of the result of the parent task.");
-            Console.WriteLine("b.    Continuation task should be executed when the parent task finished without success.");
-            Console.WriteLine("c.    Continuation task should be executed when the parent task would be finished with fail and parent task thread should be reused for continuation.");
-            Console.WriteLine("d.    Continuation task should be executed outside of the thread pool when the parent task would be cancelled.");
-            Console.WriteLine("Demonstrate the work of the each case with console utility.");
-            Console.WriteLine();
+	{
+		static async Task Main(string[] args)
+		{
+			Console.WriteLine("Create a Task and attach continuations to it according to the following criteria:");
+			Console.WriteLine("a.    Continuation task should be executed regardless of the result of the parent task.");
+			Console.WriteLine("b.    Continuation task should be executed when the parent task finished without success.");
+			Console.WriteLine("c.    Continuation task should be executed when the parent task would be finished with fail and parent task thread should be reused for continuation.");
+			Console.WriteLine("d.    Continuation task should be executed outside of the thread pool when the parent task would be cancelled.");
+			Console.WriteLine("Demonstrate the work of the each case with console utility.");
+			Console.WriteLine();
 
-            // feel free to add your code
+			Console.WriteLine("Parent task started");
+			var parentTask = Task.Run(() =>
+			{
+				Console.WriteLine("Parent task running");
+				throw new Exception("Parent task failed");
+			});
 
-            Console.ReadLine();
-        }
-    }
+			// Continuation task should be executed regardless of the result of the parent task.
+			await parentTask.ContinueWith(task =>
+			{
+				Console.WriteLine("Continuation task executed regardless of the parent task result");
+			});
+
+			try
+			{
+				await parentTask;
+			}
+			catch (Exception)
+			{
+				// Continuation task should be executed when the parent task was completed without success.
+				await parentTask.ContinueWith(task =>
+				{
+					Console.WriteLine("Continuation task executed when the parent task failed");
+				}, TaskContinuationOptions.NotOnCanceled | TaskContinuationOptions.ExecuteSynchronously);
+			}
+
+			// Continuation task should be executed when the parent task failed and parent task thread should be reused for continuation
+			await parentTask.ContinueWith(task =>
+			{
+				Console.WriteLine("Continuation task executed when the parent task failed and parent task thread should be reused for continuation");
+			}, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.FromCurrentSynchronizationContext());
+
+			var cts = new CancellationTokenSource();
+			parentTask.ContinueWith(task =>
+			{
+				// Continuation task should be executed outside of the thread pool when the parent task is cancelled
+				Task.Factory.StartNew(() =>
+				{
+					Console.WriteLine("Continuation task executed outside of the thread pool when the parent task is cancelled");
+				}, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+			}, cts.Token, TaskContinuationOptions.OnlyOnCanceled, TaskScheduler.Default);
+
+			await Task.Delay(1000);
+			cts.Cancel();
+			Console.WriteLine("Parent task cancelled");
+
+			await Task.Delay(1000);
+		}
+	}
 }
