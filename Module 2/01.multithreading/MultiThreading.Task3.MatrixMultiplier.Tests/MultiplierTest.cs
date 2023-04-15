@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MultiThreading.Task3.MatrixMultiplier.Matrices;
 using MultiThreading.Task3.MatrixMultiplier.Multipliers;
@@ -18,9 +19,22 @@ namespace MultiThreading.Task3.MatrixMultiplier.Tests
         [TestMethod]
         public void ParallelEfficiencyTest()
         {
-            // todo: implement a test method to check the size of the matrix which makes parallel multiplication more effective than
-            // todo: the regular one
-        }
+	        int size = 100;
+
+	        Matrix matrixA = GenerateMatrix(size, size);
+	        Matrix matrixB = GenerateMatrix(size, size);
+
+	        Stopwatch regularStopwatch = new Stopwatch();
+	        regularStopwatch.Start();
+	        var regularResultMatrix = new MatricesMultiplier().Multiply(matrixA, matrixB);
+	        regularStopwatch.Stop();
+
+	        Stopwatch parallelStopwatch = new Stopwatch();
+	        parallelStopwatch.Start();
+	        var parallelResultMatrix = new MatricesMultiplierParallel().Multiply(matrixA, matrixB);
+	        parallelStopwatch.Stop();
+	        Assert.IsTrue(parallelStopwatch.ElapsedMilliseconds < regularStopwatch.ElapsedMilliseconds);
+		}
 
         #region private methods
 
@@ -71,6 +85,20 @@ namespace MultiThreading.Task3.MatrixMultiplier.Tests
             Assert.AreEqual(728, multiplied.GetElement(2, 2));
         }
 
-        #endregion
-    }
+	    Matrix GenerateMatrix(int rows, int cols)
+        {
+			Random rand = new Random();
+			Matrix matrix = new Matrix(rows, cols);
+			for (long i = 0; i < rows; i++)
+			{
+				for (long j = 0; j < cols; j++)
+				{
+					long value = rand.Next(10);
+					matrix.SetElement(i, j, value);
+				}
+			}
+			return matrix;
+		}
+		#endregion
+	}
 }
