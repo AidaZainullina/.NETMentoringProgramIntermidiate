@@ -3,17 +3,13 @@
  * Each Task should iterate from 1 to 1000 and print into the console the following string:
  * “Task #0 – {iteration number}”.
  */
+using MultiThreading.Task1._100Tasks.Classes;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace MultiThreading.Task1._100Tasks
 {
 	class Program
 	{
-		const int TaskAmount = 100;
-		const int MaxIterationsCount = 1000;
-
 		static void Main(string[] args)
 		{
 			Console.WriteLine(".Net Mentoring Program. Multi threading V1.");
@@ -29,23 +25,8 @@ namespace MultiThreading.Task1._100Tasks
 
 		static void HundredTasks()
 		{
-			var taskList = new List<Task>();
-			for (var i = 0; i < TaskAmount; i++)
-			{
-				for (var j = 0; j < MaxIterationsCount; j++)
-				{
-					var lastTask = new Task(() => Output(i, j));
-					lastTask.Start();
-					taskList.Add(lastTask);
-				}
-			}
-
-			Task.WaitAll(taskList.ToArray());
-		}
-
-		static void Output(int taskNumber, int iterationNumber)
-		{
-			Console.WriteLine($"Task #{taskNumber} – {iterationNumber}");
+			var tasksClass = new TasksClass(100);
+			tasksClass.CreateTasks();
 		}
 	}
 }
