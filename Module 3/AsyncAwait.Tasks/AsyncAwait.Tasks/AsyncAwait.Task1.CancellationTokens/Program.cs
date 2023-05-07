@@ -10,18 +10,26 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncAwait.Task1.CancellationTokens.Interfaces;
 
 namespace AsyncAwait.Task1.CancellationTokens;
 
-internal class Program
+class Program
 {
+	private readonly ICalculator _calculator;
+
+	public Program(ICalculator calculator)
+	{
+		_calculator = calculator;
+	}
+
     /// <summary>
     /// The Main method should not be changed at all.
     /// </summary>
     /// <param name="args"></param>
-    private static void Main(string[] args)
+    static void Main(string[] args)
     {
-        Console.WriteLine("Mentoring program L2. Async/await.V1. Task 1");
+		Console.WriteLine("Mentoring program L2. Async/await.V1. Task 1");
         Console.WriteLine("Calculating the sum of integers from 0 to N.");
         Console.WriteLine("Use 'q' key to exit...");
         Console.WriteLine();
@@ -50,6 +58,8 @@ internal class Program
 
     private static async Task CalculateSumAsync(int n)
     {
+	    var calculator = new Calculator();
+	    var program = new Program(calculator);
 		var cts = new CancellationTokenSource();
 		var token = cts.Token;
 
@@ -68,8 +78,7 @@ internal class Program
 
         try
         {
-			// todo: make calculation asynchronous
-			var sum = await Task.Run(() => Calculator.Calculate(n, token));
+			var sum = await Task.Run(() => program._calculator.Calculate(n, token));
 			Console.WriteLine($"Sum for {n} = {sum}.");
 			Console.WriteLine();
 		}

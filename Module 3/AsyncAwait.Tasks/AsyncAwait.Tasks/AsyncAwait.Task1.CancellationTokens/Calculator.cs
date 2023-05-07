@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Reflection;
+using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncAwait.Task1.CancellationTokens.Interfaces;
 
 namespace AsyncAwait.Task1.CancellationTokens;
 
-internal static class Calculator
+public class CalcOperations : ICalcOperations
 {
-    // todo: change this method to support cancellation token
-    public static long Calculate(int n, CancellationToken token)
+    public long Calculate(int n, CancellationToken token)
 	{
 		long sum = 0;
 		while (!token.IsCancellationRequested)
@@ -17,7 +19,6 @@ internal static class Calculator
 			{
 				if (token.IsCancellationRequested)
 				{
-					Console.WriteLine("Canceld inside if");
 					token.ThrowIfCancellationRequested();
 				}
 				
@@ -26,12 +27,10 @@ internal static class Calculator
 				Task.Delay(10000);
 			}
 
-			Console.WriteLine("sum: {0}", sum);
+			Console.WriteLine("The sum is: {0}", sum);
 			return sum;
 		}
 
-
-		Console.WriteLine("Canceld inside if");
 		token.ThrowIfCancellationRequested();
 		return 0;
 	}
